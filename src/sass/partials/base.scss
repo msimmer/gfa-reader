@@ -1,0 +1,10 @@
+/*
+
+Base element styles
+
+*/
+div.img{
+  column-break-inside: avoid;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}

@@ -1,0 +1,32 @@
+{
+  "minify": true,
+  "options": [
+    "setClasses"
+  ],
+  "feature-detects": [
+    "test/audio",
+    "test/canvas",
+    "test/fullscreen-api",
+    "test/geolocation",
+    "test/history",
+    "test/svg",
+    "test/touchevents",
+    "test/unicode",
+    "test/video",
+    "test/audio/preload",
+    "test/css/animations",
+    "test/css/calc",
+    "test/css/columns",
+    "test/css/flexbox",
+    "test/css/fontface",
+    "test/css/regions",
+    "test/css/transforms3d",
+    "test/css/transitions",
+    "test/css/vhunit",
+    "test/storage/localstorage",
+    "test/svg/asimg",
+    "test/svg/inline",
+    "test/url/data-uri",
+    "test/video/preload"
+  ]
+}
