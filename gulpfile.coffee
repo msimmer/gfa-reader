@@ -8,12 +8,16 @@ uglify     = require 'gulp-uglify'
 minify     = require 'gulp-minify-css'
 del        = require 'del'
 connect    = require 'gulp-connect'
-bowerFiles = require 'main-bower-files'
+# bowerFiles = require 'main-bower-files'
 inject     = require 'gulp-inject'
 evtstr     = require 'event-stream'
 concat     = require 'gulp-concat'
 rev        = require 'gulp-rev'
 
+# should match modules/environment.php
+CACHE_ARGS = '4b9624cc-0ba1-4872-af4d-ed08273a7a15'
+SITE_PATH = '/wp-content/themes/html5blank/<?= SITE_ENV_DIR; ?>'
+READER_PATH = '/reader'
 
 gulp.task 'sass', ->
   gulp.src 'src/sass/main.scss'
@@ -45,19 +49,40 @@ gulp.task 'coffee', ->
   .pipe gulp.dest 'src/js'
 
 gulp.task 'inject:development', ->
-  return gulp.src 'index.html'
-  .pipe inject gulp.src(bowerFiles(
-    'overrides':
-      'modernizr':
-        'main': 'modernizr.js'
-  ), {read: false}), {name: 'bower'}
-  .pipe inject(gulp.src 'src/css/*.css', {read:false})
-  .pipe inject(gulp.src 'src/css/*.css', {read:false})
-  .pipe inject(gulp.src [
+  return gulp.src([
+    '../header.php',
+    '../footer.php',
+    '../index.php'
+  ])
+
+  # bower asssets added by the site, so disabling here
+  #
+
+  # .pipe inject(gulp.src(bowerFiles(
+  #   'overrides':
+  #     'modernizr':
+  #       'main': 'modernizr.js'
+  # ), {read: false}), {
+  #   name: 'bower', relative:false
+  #   transform: (filepath, file, i, length)->
+  #     "<script src=\"#{SITE_PATH}#{READER_PATH}#{filepath}?v=#{CACHE_ARGS}\"></script>"
+  # })
+
+  .pipe(inject(gulp.src('src/css/*.css', {read:false}), {
+    relative:false
+    transform: (filepath, file, i, length)->
+      "<link rel=\"stylesheet\" type=\"text/css\" href=\"#{SITE_PATH}#{READER_PATH}#{filepath}?v=#{CACHE_ARGS}\"/>"
+  }))
+  .pipe inject(gulp.src([
     'src/vendor/**/*.js'
     'src/js/main.js'
-    'src/js/*.js'], {read:false})
-  .pipe gulp.dest './'
+    'src/js/*.js'
+  ], {read:false}), {
+    relative:false
+    transform: (filepath, file, i, length)->
+      "<script src=\"#{SITE_PATH}#{READER_PATH}#{filepath}?v=#{CACHE_ARGS}\"></script>"
+  })
+  .pipe gulp.dest '../'
 
 gulp.task 'inject:production', ['rev'], ->
   gulp.src 'dist/index.html'
@@ -71,16 +96,21 @@ gulp.task 'rev', ->
     .pipe rev()
     .pipe gulp.dest 'dist/css'
 
-  gulp.src(
-    bowerFiles(
-      overrides:
-        modernizr:
-          main:'modernizr.js'
-    ).concat [
-      'src/vendor/*.js'
-      'src/js/main.js'
-      'src/js/*.js'
-    ])
+  gulp.src([
+    'src/vendor/*.js'
+    'src/js/main.js'
+    'src/js/*.js'
+  ])
+  # gulp.src(
+  #   bowerFiles(
+  #     overrides:
+  #       modernizr:
+  #         main:'modernizr.js'
+  #   ).concat [
+  #     'src/vendor/*.js'
+  #     'src/js/main.js'
+  #     'src/js/*.js'
+  #   ])
   .pipe concat('main.js')
   .pipe uglify()
   .pipe rev()
@@ -91,11 +121,13 @@ gulp.task 'watch', ->
     'src/js/**/*.js'
     'src/css/**/*.css'
     '*.{html,xhtml,htm}'
+    '../*.php'
+    '../components/*.php'
   ]).on 'change', (file) ->
     gutil.log('Reload:', gutil.colors.magenta("#{file.path}"))
     connect.reload()
 
-  gulp.watch 'src/sass/**/*.scss', ['sass']
+  gulp.watch 'src/sass/**/*.scss', ['sass', 'inject:development']
   gulp.watch 'src/sass/main.css', ['styles']
   gulp.watch 'src/coffee/**/*.coffee', ['coffee']
 

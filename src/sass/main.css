@@ -3,37 +3,12 @@
 Core horizontal scrolling styles
 
 */
-html, body, main {
-  overflow: hidden;
-  max-height: 100%;
-  margin: 0;
-  padding: 0; }
-
-main {
-  position: absolute;
-  top: 30px;
-  bottom: 30px;
-  left: 30px;
-  right: 30px; }
-
-article {
-  max-height: 100%;
-  height: 100%;
-  -webkit-perspective: 1;
-  perspective: 1;
-  -webkit-columns: 2;
-  -moz-columns: 2;
-  columns: 2;
-  -webkit-column-gap: 30px;
-  -moz-column-gap: 30px;
-  column-gap: 30px; }
-
 /*
 
 Base element styles
 
 */
-div.img {
+html.reader div.img {
   column-break-inside: avoid;
   page-break-inside: avoid;
   -webkit-column-break-inside: avoid;
