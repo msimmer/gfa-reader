@@ -16,9 +16,7 @@ class App
       text      : null
 
     @location =
-      # assets : null
-      # url    : null
-      assets   : "/src/assets/OEBPS"
+      assets   : null
       url      : "#{window.location.origin}".replace(/\/$/, '')
 
     @nav =
@@ -60,8 +58,11 @@ class App
     @parse.xml(data, curry)
 
   initialize: ->
+    console.log "#{@location.url}"
+
     token = if @options.toc then 'nav' else 'ncx'
     attr = if @options.toc then 'properties' else 'id'
+    @location.assets = @options.assets or ''
     @nav.regexp = new RegExp("^#{token}$", 'i')
     @nav.attribute = attr
     @query.xml(@options.packageUrl).done (data) => @build(data)
