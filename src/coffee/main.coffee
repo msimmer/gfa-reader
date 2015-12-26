@@ -33,6 +33,10 @@ class Reader
     @html     = []
     @metadata = []
 
+    @elem   = document.getElementById('reader')
+    @pagect = null
+
+
   getNavDocument: (that)->
     return (key, val, item)->
       if key == that.nav.attribute and that.nav.regexp.test(val)
@@ -46,6 +50,7 @@ class Reader
         .done (data)->
           doc = that.template.parse(data, that.location.assets)
           that.layout.render(doc, parentId)
+          if not that.pagect -=1 then that.trigger('pagesloaded', {})
 
   xml: ()->
     curry = @renderPage(@, @options)
@@ -57,7 +62,15 @@ class Reader
 
   build: (data)->
     curry = @getNavDocument(@)
-    @parse.xml(data, curry)
+    @pagect = @parse.xml(data, curry).package.spine.itemref.length
+
+  on: (handle, callback) ->
+    evt = document.createEvent('CustomEvent')
+    evt.initCustomEvent(handle, true, false, {})
+    @elem.addEventListener(handle, callback)
+
+  trigger: (handle, data) ->
+    @elem.dispatchEvent(new CustomEvent(handle, data))
 
   initialize: ->
     token = if @options.toc then 'nav' else 'ncx'
@@ -65,5 +78,10 @@ class Reader
     @nav.regexp = new RegExp("^#{token}$", 'i')
     @nav.attribute = attr
     @query.xml(@options.packageUrl).done (data) => @build(data)
+
+    # see /vendor/jQuery-Scoped-CSS-plugin-master/jquery.scoped.js#109
+    $(document).on 'styles:scoped', () =>
+      @trigger('ready', {})
+
 
 window.Reader = Reader

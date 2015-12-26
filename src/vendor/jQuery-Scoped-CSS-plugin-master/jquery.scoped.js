@@ -73,7 +73,7 @@
     });
 
     //Go through a second time to process the scopes
-    $style.each(function() {
+    $style.each(function(i) {
       var $this = $(this);
       if (isScoped($this)) {
 
@@ -104,6 +104,11 @@
 
 
             this_style = holdingArea.shift();
+
+            // -- adding in an emitter so we know when styles have been applied
+            if (holdingArea.length === 0 && i === $style.length-1) {
+              $(document).trigger('styles:scoped');
+            }
 
             if (typeof this_style === 'string') {
               // Webkit, Gecko

@@ -36,6 +36,8 @@ class Reader::Layout
         @frame = frame
         @build(item.navPoint, callback, @frame)
 
+    return item
+
   render: (doc, id) ->
     $("##{id}").append(doc)
 
