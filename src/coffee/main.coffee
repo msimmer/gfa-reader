@@ -80,8 +80,8 @@ class Reader
     @query.xml(@options.packageUrl).done (data) => @build(data)
 
     # see /vendor/jQuery-Scoped-CSS-plugin-master/jquery.scoped.js#109
-    $(document).on 'styles:scoped', () =>
-      @trigger('ready', {})
+    # $(document).on 'styles:scoped', () =>
+    @trigger('ready', {})
 
 
 window.Reader = Reader

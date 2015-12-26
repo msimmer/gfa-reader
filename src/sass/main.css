@@ -13,3 +13,83 @@ html.reader div.img {
   page-break-inside: avoid;
   -webkit-column-break-inside: avoid;
   break-inside: avoid; }
+
+html, body, main {
+  height: 100%;
+  overflow-x: scroll;
+  overflow-y: hidden; }
+
+#reader {
+  position: absolute;
+  background-color: white;
+  top: 15px;
+  bottom: 15px;
+  right: 15px;
+  left: 15px;
+  width: auto;
+  height: calc(100% - 30px);
+  padding: 30px;
+  -webkit-columns: 2;
+  -moz-columns: 2;
+  columns: 2;
+  -webkit-column-fill: auto;
+  -moz-column-fill: auto;
+  column-fill: auto;
+  -webkit-column-gap: 3em;
+  -moz-column-gap: 3em;
+  column-gap: 3em;
+  -webkit-column-rule: 0;
+  -moz-column-rule: 0;
+  column-rule: 0;
+  -webkit-column-span: none;
+  -moz-column-span: none;
+  column-span: none;
+  -webkit-column-width: 100%;
+  -moz-column-width: 100%;
+  column-width: 100%; }
+
+.no-break, div.img {
+  -webkit-column-break-inside: avoid;
+  page-break-inside: avoid;
+  break-inside: avoid; }
+
+.break-before, article {
+  -webkit-column-break-before: always;
+  page-break-before: always;
+  break-before: always; }
+
+.break-after {
+  -webkit-column-break-after: always;
+  page-break-after: always;
+  break-after: always; }
+
+article {
+  margin: 0;
+  padding: 0; }
+  article section {
+    margin: 0;
+    padding: 0; }
+    article section p {
+      word-wrap: break-word; }
+
+div.img img {
+  max-width: 100% !important;
+  width: auto !important;
+  min-height: 300px !important; }
+
+#screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #000;
+  z-index: -1; }
+  #screen .inner {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    bottom: 15px;
+    z-index: 1;
+    background-color: white; }
