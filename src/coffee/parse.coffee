@@ -1,9 +1,9 @@
-class App::Parse
+class Reader::Parse
+
+  constructor: (@options = {}) ->
 
   trim = (val)->
     val.replace(/^[#@]/, '')
-
-  constructor: (options = {}) ->
 
   xml: (data, callback) =>
     obj = {}

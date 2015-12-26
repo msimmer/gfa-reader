@@ -1,6 +1,6 @@
-class App::Layout
+class Reader::Layout
 
-  constructor: (options = {}) ->
+  constructor: (@options = {}) ->
     @pos = 0
     @frame = null
 
@@ -8,7 +8,7 @@ class App::Layout
     return $("<article />").attr('data-article':@pos)
 
   child: (attrs) ->
-    return $("<section />").attr(attrs).text("#{@pos} : #{attrs['data-label']}")
+    return $("<section />").attr(attrs)
 
   add: (elem, parent)->
     parent.append(elem)
@@ -22,7 +22,7 @@ class App::Layout
         'data-label':item.navLabel
         'data-src':item.src
 
-      if !parent then @frame = $('main')
+      if !parent then @frame = $('#reader')
 
       frame = @add(@parent(), @frame)
       @add(@child(attrs), frame)

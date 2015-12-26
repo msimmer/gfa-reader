@@ -1,16 +1,16 @@
-class App::Query
+class Reader::Query
+
+  constructor: (@options = {}) ->
 
   model = (options = {}) ->
     return {
-      url      : options.url      || ''
-      data     : options.data     || {}
-      dataType : options.dataType || ''
-      async    : options.async    || true
-      cache    : options.cache    || true
-      headers  : options.headers  || {}
+      url      : options.url      or ''
+      data     : options.data     or {}
+      dataType : options.dataType or ''
+      async    : options.async    or true
+      cache    : options.cache    or true
+      headers  : options.headers  or {}
     }
-
-  constructor: (options = {}) ->
 
   request: (options = {})->
     $.ajax

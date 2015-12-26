@@ -1,11 +1,12 @@
-class App
+class Reader
 
   constructor: (@options = {})->
 
-    @query  = new @Query()
-    @parse  = new @Parse()
-    @layout = new @Layout()
-    @aspect = new @Aspect()
+    @query    = new @Query()
+    @parse    = new @Parse()
+    @layout   = new @Layout()
+    @aspect   = new @Aspect()
+    @template = new @Template()
 
     @package =
       attributes: null
@@ -16,8 +17,8 @@ class App
       text      : null
 
     @location =
-      assets   : null
-      url      : "#{window.location.origin}".replace(/\/$/, '')
+      assets : @options.assets or ''
+      url    : "#{window.location.origin}".replace(/\/$/, '')
 
     @nav =
       elem      : null
@@ -39,14 +40,15 @@ class App
         that.nav.path = item.getAttribute('href')
         that.xml()
 
-  renderPage: (that)->
+  renderPage: (that, options)->
     return (url, parentId) ->
       that.query.html("#{that.location.assets}/#{url}")
         .done (data)->
-          that.layout.render(data, parentId)
+          doc = that.template.parse(data, that.location.assets)
+          that.layout.render(doc, parentId)
 
   xml: ()->
-    curry = @renderPage(@)
+    curry = @renderPage(@, @options)
     @query.xml("#{@location.assets}/#{@nav.path}")
       .done (data) =>
         @ncx = @parse.nav(data)
@@ -58,13 +60,10 @@ class App
     @parse.xml(data, curry)
 
   initialize: ->
-    console.log "#{@location.url}"
-
     token = if @options.toc then 'nav' else 'ncx'
     attr = if @options.toc then 'properties' else 'id'
-    @location.assets = @options.assets or ''
     @nav.regexp = new RegExp("^#{token}$", 'i')
     @nav.attribute = attr
     @query.xml(@options.packageUrl).done (data) => @build(data)
 
-window.App = App
+window.Reader = Reader

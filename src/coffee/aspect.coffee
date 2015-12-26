@@ -1,3 +1,3 @@
-class App::Aspect
+class Reader::Aspect
 
-  constructor: (options = {}) ->
+  constructor: (@options = {}) ->
