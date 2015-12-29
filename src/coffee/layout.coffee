@@ -4,28 +4,47 @@ class Reader::Layout
     @pos = 0
     @frame = null
 
-  parent: () ->
-    return $("<article />").attr('data-article':@pos)
+  parent: (elem, attrs) ->
+    return $("<#{elem} />").attr(attrs)
 
-  child: (attrs) ->
-    return $("<section />").attr(attrs)
+  child: (elem, attrs, props) ->
+    $elem = $("<#{elem} />").attr(attrs)
+    if props
+      for key, val of props
+        if typeof key == 'function'
+          callback = key
+        else if typeof $.fn[key] == 'function'
+          callback = $.fn[key]
+        callback.call($elem, val)
+    return $elem
 
   add: (elem, parent)->
     parent.append(elem)
     return elem
 
-  build: (data, callback, parent)->
+  build: (data, callback, parentId, navId)->
     for item, index in data
       @pos+=1
-      attrs =
+      parentAttrs =
         id:item.id
+        'data-article':@pos
+      childAttrs =
         'data-label':item.navLabel
         'data-src':item.src
 
-      if !parent then @frame = $('#reader')
+      @frame = $("##{parentId}")
+      frame = @add(@parent('article', parentAttrs), @frame)
+      @add(@child('section', childAttrs), frame)
 
-      frame = @add(@parent(), @frame)
-      @add(@child(attrs), frame)
+      @nav = $("#doc-nav ol")
+      nav = @add(@parent('li', {}), @nav)
+      @add(@child('a', {
+          'href':'#'
+          'class':'doc-link'
+          'data-link': item.id
+        }, {
+          'text':item.navLabel
+        }), nav)
 
       # callback gets and renders loading html pages, dropping them into the
       # appropriate dom elements
@@ -34,7 +53,8 @@ class Reader::Layout
 
       if item.navPoint?.length
         @frame = frame
-        @build(item.navPoint, callback, @frame)
+        @nav = nav
+        @build(item.navPoint, callback, @frame, navId)
 
     return item
 

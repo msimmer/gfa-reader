@@ -1,32 +1,43 @@
-/*
 
-Core horizontal scrolling styles
+html,body{
+  overflow: hidden;
+  background-color: #000;
+}
 
-*/
-// html.reader,body,main{
-//   overflow:hidden;
-//   max-height:100%;
-//   margin:0;
-//   padding:0;
-//   body,main{
-//     overflow:hidden;
-//     max-height:100%;
-//     margin:0;
-//     padding:0;
-//     main{
-//       position:absolute;
-//       top:30px;
-//       bottom:30px;
-//       left:30px;
-//       right:30px;
-//     }
-//     article{
-//       max-height:100%;
-//       height:100%;
-//       perspective:1; // http://caniuse.com/#search=columns
-//       columns:2;
-//       column-gap:30px;
-//     }
-//     section{}
-//   }
-// }
+#reader-border{
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: transparent url('../img/pattern.jpeg') no-repeat center center;
+  background-size: cover;
+  &:before{
+    content: ' ';
+    display: table;
+    z-index: 1;
+    background: black;
+    height: 100%;
+    width: 100%;
+    filter:opacity(0.5);
+  }
+}
+
+#reader-content{}
+
+#reader-frame{
+  height: 100%;
+  overflow: hidden;
+  position:absolute;
+  background-color: white;
+  top:$padding-md;
+  bottom:$padding-md;
+  right:$padding-md;
+  left:$padding-md;
+  width:auto;
+  height:calc(100% - #{$padding-md*2});
+  padding:$padding-sm*2;
+  @include columns;
+  opacity: 0;
+  transition:opacity $speed-slow $easing;
+}

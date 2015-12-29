@@ -2,7 +2,10 @@
 @import 'modules/variables';
 @import 'modules/mixins';
 
+@import 'partials/fonts';
 @import 'partials/core';
 @import 'partials/base';
+@import 'partials/ui';
 @import 'partials/nav';
+
 @import 'partials/dev';

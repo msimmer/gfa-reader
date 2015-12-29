@@ -5,3 +5,4 @@ _test/
 node_modules/
 bower_components/
 dist/
+src/img/

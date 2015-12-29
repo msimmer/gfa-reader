@@ -7,6 +7,7 @@ class Reader
     @layout   = new @Layout()
     @aspect   = new @Aspect()
     @template = new @Template()
+    @events   = new @Events()
 
     @package =
       attributes: null
@@ -33,8 +34,11 @@ class Reader
     @html     = []
     @metadata = []
 
-    @elem   = document.getElementById('reader')
-    @pagect = null
+    @navElem  = document.getElementById('reader-nav')
+    @mainElem = document.getElementById('reader-frame')
+    @pagect   = null
+    @pagect   = null
+    @delay    = 150
 
 
   getNavDocument: (that)->
@@ -44,21 +48,21 @@ class Reader
         that.nav.path = item.getAttribute('href')
         that.xml()
 
-  renderPage: (that, options)->
-    return (url, parentId) ->
+  renderPage: (that)->
+    return (url, parentId, navId) ->
       that.query.html("#{that.location.assets}/#{url}")
         .done (data)->
           doc = that.template.parse(data, that.location.assets)
-          that.layout.render(doc, parentId)
+          that.layout.render(doc, parentId, '#doc-nav')
           if not that.pagect -=1 then that.trigger('pagesloaded', {})
 
   xml: ()->
-    curry = @renderPage(@, @options)
+    curry = @renderPage(@)
     @query.xml("#{@location.assets}/#{@nav.path}")
       .done (data) =>
         @ncx = @parse.nav(data)
         @navMap = @parse.mapNcx(@ncx.navMap.navPoint)
-        @layout.build(@navMap, curry)
+        @layout.build(@navMap, curry, @mainElem.id)
 
   build: (data)->
     curry = @getNavDocument(@)
@@ -67,10 +71,10 @@ class Reader
   on: (handle, callback) ->
     evt = document.createEvent('CustomEvent')
     evt.initCustomEvent(handle, true, false, {})
-    @elem.addEventListener(handle, callback)
+    @mainElem.addEventListener(handle, callback)
 
   trigger: (handle, data) ->
-    @elem.dispatchEvent(new CustomEvent(handle, data))
+    @mainElem.dispatchEvent(new CustomEvent(handle, data))
 
   initialize: ->
     token = if @options.toc then 'nav' else 'ncx'
@@ -79,9 +83,50 @@ class Reader
     @nav.attribute = attr
     @query.xml(@options.packageUrl).done (data) => @build(data)
 
-    # see /vendor/jQuery-Scoped-CSS-plugin-master/jquery.scoped.js#109
-    # $(document).on 'styles:scoped', () =>
-    @trigger('ready', {})
+    layoutcomplete = false
+    observer = new MutationObserver((mutations) =>
+      mutations.forEach (mutationRecord) =>
+        if !layoutcomplete
+          layoutcomplete = true
+          @trigger('layoutcomplete', {})
+        return
+      return
+    )
+    target = document.body
+    observer.observe target,
+      childList: true
+      attributes: true
+      attributeFilter: [ 'style' ]
+
+    @on 'pagesloaded', =>
+      console.log 'Reader pagesloaded'
+
+    @on 'layoutcomplete', =>
+      console.log 'Reader layoutcomplete'
+      @events.frameWidth = @events.setFrameWidth()
+      @events.colGap = @events.setColGap()
+      @events.setArticlePos()
+      @events.bindElems()
+
+      setTimeout => @trigger('ready', {})
+
+    @on 'ready', =>
+      console.log 'Reader ready'
+      $(@mainElem).css({opacity:1})
+
+    bounceResize = @events.debounce ()=>
+      @events.setColGap()
+      @events.setFrameWidth()
+      @events.setArticlePos()
+    , @delay
+
+    bounceReturnToPos = @events.debounce ()=>
+      # this should be called by `setArticlePos()` instead of settimeout
+      @events.returnToPos()
+    , @delay * 2
+
+    $(window).on 'resize', bounceReturnToPos
+    $(window).on 'resize', bounceResize
 
 
 window.Reader = Reader

@@ -5,8 +5,6 @@ Base element styles
 */
 html.reader{
   div.img{
-    column-break-inside: avoid;
-    page-break-inside: avoid;
-    break-inside: avoid;
+    @extend .no-column-break;
   }
 }
