@@ -1,8 +1,10 @@
 class Reader::Layout
 
-  constructor: (@options = {}) ->
-    @pos = 0
-    @frame = null
+  pos   = 0
+  frame = null
+  nav   = null
+
+  constructor: (options = {}) ->
 
   parent: (elem, attrs) ->
     return $("<#{elem} />").attr(attrs)
@@ -24,20 +26,20 @@ class Reader::Layout
 
   build: (data, callback, parentId, navId)->
     for item, index in data
-      @pos+=1
+      pos+=1
       parentAttrs =
         id:item.id
-        'data-article':@pos
+        'data-article':pos
       childAttrs =
         'data-label':item.navLabel
         'data-src':item.src
 
-      @frame = $("##{parentId}")
-      frame = @add(@parent('article', parentAttrs), @frame)
+      frame = $("##{parentId}")
+      frame = @add(@parent('article', parentAttrs), frame)
       @add(@child('section', childAttrs), frame)
 
-      @nav = $("#doc-nav ol")
-      nav = @add(@parent('li', {}), @nav)
+      nav = $("#doc-nav ol")
+      nav = @add(@parent('li', {}), nav)
       @add(@child('a', {
           'href':'#'
           'class':'doc-link'
@@ -52,9 +54,9 @@ class Reader::Layout
       callback(item.src, item.id)
 
       if item.navPoint?.length
-        @frame = frame
-        @nav = nav
-        @build(item.navPoint, callback, @frame, navId)
+        frame = frame
+        nav = nav
+        @build(item.navPoint, callback, frame, navId)
 
     return item
 

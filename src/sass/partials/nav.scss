@@ -64,8 +64,13 @@
   transform: translate3d($padding-md*10,0,0);
   transition:transform $speed-fast $easing;
 
+  -webkit-overflow-scrolling:touch;
+
   &.active{
     transform:translate3d(0,0,0);
+    @include break('mobile') {
+      width: 100%;
+    }
   }
 
   position: absolute;

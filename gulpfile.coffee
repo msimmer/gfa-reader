@@ -128,8 +128,8 @@ gulp.task 'watch', ->
     connect.reload()
 
   gulp.watch 'src/sass/**/*.scss', ['sass', 'inject:development']
+  gulp.watch 'src/coffee/**/*.coffee', ['coffee', 'inject:development']
   gulp.watch 'src/sass/main.css', ['styles']
-  gulp.watch 'src/coffee/**/*.coffee', ['coffee']
 
 gulp.task 'clean', ->
   del ['dist/**']

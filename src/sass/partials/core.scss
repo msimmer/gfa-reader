@@ -1,7 +1,10 @@
 
-html,body{
-  overflow: hidden;
-  background-color: #000;
+body{
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
 #reader-border{
@@ -26,7 +29,6 @@ html,body{
 #reader-content{}
 
 #reader-frame{
-  height: 100%;
   overflow: hidden;
   position:absolute;
   background-color: white;
@@ -35,9 +37,22 @@ html,body{
   right:$padding-md;
   left:$padding-md;
   width:auto;
+  height: 100%;
   height:calc(100% - #{$padding-md*2});
-  padding:$padding-sm*2;
+  padding:$padding-md;
   @include columns;
   opacity: 0;
   transition:opacity $speed-slow $easing;
+  &.ready{
+    opacity: 1;
+  }
+  @include break('mobile') {
+    @include columns;
+    height:calc(100% - #{$padding-sm*2});
+    padding:$padding-sm;
+    top:$padding-sm;
+    bottom:$padding-sm;
+    right:$padding-sm;
+    left:$padding-sm;
+  }
 }

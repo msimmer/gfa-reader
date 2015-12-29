@@ -25,7 +25,8 @@ div.img{
 
 
 // nav
-.icon-menu:before{
+.icon-list:before,
+.icon-home3:before{
   color: #000;
   font-size: 1.6rem;
   border: 2px solid #000;
@@ -36,6 +37,10 @@ div.img{
   right: -15px;
   z-index: 1;
   background: #fff;
+}
+
+.icon-home3:before{
+  right: -30px;
 }
 
 // site override

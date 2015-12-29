@@ -21,9 +21,28 @@
                  break-after: always;
 }
 
+@mixin break($media){
+  @if $media == 'mobile'  {
+    @media #{$mq-mobile} { @content }
+  }
+  @else if $media == 'desktop' {
+    @media #{$mq-desktop} { @content }
+  }
+  @else {
+    @if feature-exists('at-error') == true {
+      @error "#{$media} is not a supported media type.";
+    }
+    @else {
+      @warn "`#{$media}` is not a supported media type."
+    }
+  }
+}
 
 @mixin columns(){
-  columns: 2;
+  column-count: 2;
+  @include break('mobile') {
+    column-count: 1;
+  }
   column-fill: auto;
   column-gap: 3em;
   column-rule: 0;
@@ -34,7 +53,7 @@
 // should be applied on parent `ol`
 //
 @mixin list-indentation(){
-  li                         { text-indent: $padding-md; }
+  li                         { text-indent: $padding-md*1; }
   li ol li                   { text-indent: $padding-md*2; }
   li ol li ol li             { text-indent: $padding-md*3; }
   li ol li ol li ol li       { text-indent: $padding-md*4; }

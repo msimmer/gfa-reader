@@ -2,9 +2,9 @@
   font-family: 'icomoon';
   src:  url('../fonts/icomoon.eot?fkrbnz');
   src:  url('../fonts/icomoon.eot?fkrbnz#iefix') format('embedded-opentype'),
-    url('../fonts/icomoon.ttf?fkrbnz') format('truetype'),
-    url('../fonts/icomoon.woff?fkrbnz') format('woff'),
-    url('../fonts/icomoon.svg?fkrbnz#icomoon') format('svg');
+        url('../fonts/icomoon.ttf?fkrbnz') format('truetype'),
+        url('../fonts/icomoon.woff?fkrbnz') format('woff'),
+        url('../fonts/icomoon.svg?fkrbnz#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -23,20 +23,8 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
-.icon-menu:before {
-  content: "\e900";
-}
-.icon-backward2:before {
-  content: "\e901";
-}
-.icon-forward3:before {
-  content: "\e902";
-}
-.icon-first:before {
-  content: "\e903";
-}
-.icon-last:before {
-  content: "\e904";
-}
+.icon-home3:before      { content: "\e901"; }
+.icon-list:before       { content: "\e902"; }
+.icon-menu:before       { content: "\e900"; }
+.icon-download2:before  { content: "\e903"; }
 

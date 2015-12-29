@@ -1,7 +1,5 @@
 class Reader::Query
 
-  constructor: (@options = {}) ->
-
   model = (options = {}) ->
     return {
       url      : options.url      or ''
@@ -11,6 +9,8 @@ class Reader::Query
       cache    : options.cache    or true
       headers  : options.headers  or {}
     }
+
+  constructor: (options = {}) ->
 
   request: (options = {})->
     $.ajax

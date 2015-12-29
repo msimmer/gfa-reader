@@ -1,11 +1,21 @@
 class Reader
 
+  proxy = null
+  memStore =
+    html:{}
+    body:{}
+
   constructor: (@options = {})->
+
+    # create an element to attach event listeners to.  only needs to stay in
+    # memory, so not attaching it to the DOM
+    #
+    proxy = document.createElement('div')
+    proxy.id = "_#{Date.now()}";
 
     @query    = new @Query()
     @parse    = new @Parse()
     @layout   = new @Layout()
-    @aspect   = new @Aspect()
     @template = new @Template()
     @events   = new @Events()
 
@@ -68,19 +78,34 @@ class Reader
     curry = @getNavDocument(@)
     @pagect = @parse.xml(data, curry).package.spine.itemref.length
 
-  on: (handle, callback) ->
+  on: (method, callback) ->
     evt = document.createEvent('CustomEvent')
-    evt.initCustomEvent(handle, true, false, {})
-    @mainElem.addEventListener(handle, callback)
+    evt.initCustomEvent(method, true, false, {})
+    proxy.addEventListener(method, callback)
 
-  trigger: (handle, data) ->
-    @mainElem.dispatchEvent(new CustomEvent(handle, data))
+  trigger: (method, data) ->
+    proxy.dispatchEvent(new CustomEvent(method, data))
+
+  setup:()->
+    # Store existing html/body attributes and apply reader attributes
+    #
+    memStore.html.overflow = $('html').css('overflow')
+    memStore.body.overflow = $('body').css('overflow')
+    $('html,body').css({overflow:'hidden'})
+
+  destroy:()->
+    # Reset previous attributes on html/body, and remove proxy element
+    #
+    $('html').css({overflow:memStore.html.overflow})
+    $('body').css({overflow:memStore.body.overflow})
+    proxy = undefined
 
   initialize: ->
     token = if @options.toc then 'nav' else 'ncx'
     attr = if @options.toc then 'properties' else 'id'
     @nav.regexp = new RegExp("^#{token}$", 'i')
     @nav.attribute = attr
+    @setup()
     @query.xml(@options.packageUrl).done (data) => @build(data)
 
     layoutcomplete = false
@@ -89,44 +114,48 @@ class Reader
         if !layoutcomplete
           layoutcomplete = true
           @trigger('layoutcomplete', {})
-        return
-      return
     )
+
     target = document.body
     observer.observe target,
       childList: true
       attributes: true
-      attributeFilter: [ 'style' ]
+      attributeFilter: ['style']
 
+    # Public event listeners
+    #
     @on 'pagesloaded', =>
       console.log 'Reader pagesloaded'
+      window.scopedPolyFill(document)
 
     @on 'layoutcomplete', =>
       console.log 'Reader layoutcomplete'
-      @events.frameWidth = @events.setFrameWidth()
-      @events.colGap = @events.setColGap()
-      @events.setArticlePos()
-      @events.bindElems()
-
+      @events.initialize()
       setTimeout => @trigger('ready', {})
 
     @on 'ready', =>
       console.log 'Reader ready'
-      $(@mainElem).css({opacity:1})
+      $(@mainElem).addClass('ready')
 
+    @on 'destroy', =>
+      @destroy()
+
+    # Event handlers
+    #
     bounceResize = @events.debounce ()=>
       @events.setColGap()
       @events.setFrameWidth()
       @events.setArticlePos()
     , @delay
 
-    bounceReturnToPos = @events.debounce ()=>
-      # this should be called by `setArticlePos()` instead of settimeout
-      @events.returnToPos()
-    , @delay * 2
-
-    $(window).on 'resize', bounceReturnToPos
     $(window).on 'resize', bounceResize
+
+    # Important to destroy our proxy element, as it will continue to have
+    # handlers attached unless it's removed
+    #
+    window.onunload = window.onpopstate = () => @destroy()
+    $("a[href^=\"/\"],a[href^=\"https?://(www\.)?#{window.location.host}\"]").on 'click', (e) =>
+      @destroy()
 
 
 window.Reader = Reader
