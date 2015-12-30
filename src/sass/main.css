@@ -155,6 +155,12 @@ Base element styles
 a {
   -webkit-tap-highlight-color: rgba(255, 255, 255, 0.2); }
 
+.highlight {
+  transition: background-color 0.3s ease-out; }
+
+.highlight-add {
+  background-color: #ff0 !important; }
+
 #reader-nav ul li a.nav-link, #doc-nav ol li a {
   display: -webkit-flex;
   display: -ms-flexbox;

@@ -20,14 +20,25 @@ class Reader::Events
   frameMap        = []
 
   defaults =
-    reader    : '#reader-frame'
-    docNav    : '#doc-nav'
-    navToggle : '[data-nav=contents]'
-    chBack    : '[data-nav=chBack]'
-    chFwd     : '[data-nav=chFwd]'
-    pgBack    : '[data-nav=pgBack]'
-    pgFwd     : '[data-nav=pgFwd]'
-    speed     : 400
+    reader        : '#reader-frame'
+    docNav        : '#doc-nav'
+    navToggle     : '[data-nav=contents]'
+    chBack        : '[data-nav=chBack]'
+    chFwd         : '[data-nav=chFwd]'
+    pgBack        : '[data-nav=pgBack]'
+    pgFwd         : '[data-nav=pgFwd]'
+    note          : 'a.fn'
+    scrollSpeed   : 400
+    animSpeedFast : 500
+    animSpeedSlow : 1000
+
+  # helpers
+  #
+  blockElems = ['address','article','aside','blockquote','canvas','dd','div','dl','fieldset','figcaption','figure','figcaption','footer','form','h1','h2','h3','h4','h5','h6','header','hgroup','hr','li','main','nav','noscript','ol','output','p','pre','section','table','tfoot','ul','video']
+  blockParent = (elem) ->
+    if blockElems.indexOf(elem[0].nodeName.toLowerCase()) > -1
+      return elem
+    else blockParent(elem.parent())
 
   constructor: (options = {}) ->
 
@@ -35,10 +46,11 @@ class Reader::Events
     frame     = $(@settings.reader)
     navbar    = $(@settings.docNav)
 
-    # convenience methods
+    # convenience methods, publicly available
     #
-    @nextPage = (callback) -> @scrollPage(null, 1, callback)
-    @prevPage = (callback) -> @scrollPage(null, -1, callback)
+    @nextPage = (callback)           -> @scrollPage(null, 1, callback)
+    @prevPage = (callback)           -> @scrollPage(null, -1, callback)
+    @scrollTo = (selector, callback) -> @scrollToEl(null, selector, callback)
 
 
   preventDefault:(e)->
@@ -62,6 +74,7 @@ class Reader::Events
         func.apply context, args
 
   setColGap:()->
+    # default returns 45px, although it's set in ems
     colGap = parseInt(frame.css('column-gap'), 10)
 
   setFrameWidth:()->
@@ -151,18 +164,49 @@ class Reader::Events
     $(@settings.chBack).on 'click', (e)      => @scrollChapter(e, -1)
     $(@settings.pgFwd).on 'click', (e)       => @scrollPage(e, 1)
     $(@settings.pgBack).on 'click', (e)      => @scrollPage(e, -1)
+    $(@settings.note).on 'click', (e)        => @scrollToEl(e, $(e.currentTarget).attr('href'))
 
   prepareScroll:(e)->
     @preventDefault(e)
     if isScrolling then frame.stop(true,true)
     isScrolling = true
 
+  scrollToEl:(e, selector, callback)->
+    @prepareScroll(e)
+    elem = $(selector)
+    if !elem.length
+      return console.error "Error: Element '#{selector}' doesn't exist in the document."
+
+    elemLeft = blockParent(elem).offset().left
+    currLeft = frame.scrollLeft()
+    refWidth = frameWidth + colGap
+
+    elemLeft -= refWidth/2 + colGap + offset
+
+    targetSpread = (elemLeft + currLeft) / refWidth
+    currentSpread = currLeft / refWidth
+
+    diff = targetSpread - currentSpread
+    dest = currLeft + (diff * refWidth)
+
+    fast = @settings.animSpeedFast
+    slow = @settings.animSpeedSlow
+
+    @animateScroll dest, ()->
+      elem.addClass('highlight').addClass('highlight-add')
+      setTimeout ->
+        elem.removeClass('highlight-add')
+        setTimeout ->
+          elem.removeClass('highlight')
+        , fast
+      , slow
+
   scrollPage:(e, pos, callback)->
     @prepareScroll(e)
     dist = frameWidth
     currLeft = frame.scrollLeft()
-    dest =  (dist * pos) + currLeft + (colGap * pos)
-    @animateScroll(dest, callback, pos)
+    dest = (dist * pos) + currLeft + (colGap * pos)
+    @animateScroll(dest, callback)
 
   scrollChapter:(e, callback)->
     @prepareScroll(e)
@@ -170,15 +214,14 @@ class Reader::Events
     dest = target.attr('data-offset-left')
     @animateScroll(dest, callback)
 
-  animateScroll:(dest, callback, pos) ->
+  animateScroll:(dest, callback) ->
     @closeNav()
     frame
       .stop(true, true)
-      .animate {scrollLeft: dest}, () =>
+      .animate {scrollLeft: dest}, @settings.scrollSpeed, () =>
         isScrolling = false
-        idx = parseInt("#{currSpread + pos}", 10)
-        currSpread = if idx < 0 then 0 else if idx > maxLen then maxLen else idx
-        if callback and typeof callback == 'function' then callback()
+        if callback and typeof callback == 'function'
+          callback()
 
   closeNav:()->
     navbar.removeClass('active')
