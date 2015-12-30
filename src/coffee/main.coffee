@@ -1,6 +1,7 @@
 class Reader
 
-  proxy = null
+  proxy    = null
+  pagect   = null
   memStore =
     html:{}
     body:{}
@@ -13,11 +14,13 @@ class Reader
     proxy = document.createElement('div')
     proxy.id = "_#{Date.now()}";
 
+    @utils    = new @Utils()
     @query    = new @Query()
     @parse    = new @Parse()
     @layout   = new @Layout()
     @template = new @Template()
     @events   = new @Events()
+    @swipe    = new @Swipe()
 
     @package =
       attributes: null
@@ -38,17 +41,12 @@ class Reader
       attribute : null
 
     @navMap   = null
-    @navUrl   = null
     @ncx      = null
-    @navRe    = null
     @html     = []
     @metadata = []
 
     @navElem  = document.getElementById('reader-nav')
     @mainElem = document.getElementById('reader-frame')
-    @pagect   = null
-    @pagect   = null
-    @delay    = 150
 
 
   getNavDocument: (that)->
@@ -64,7 +62,7 @@ class Reader
         .done (data)->
           doc = that.template.parse(data, that.location.assets)
           that.layout.render(doc, parentId, '#doc-nav')
-          if not that.pagect -=1 then that.trigger('pagesloaded', {})
+          if not pagect -=1 then that.trigger('pagesloaded', {})
 
   xml: ()->
     curry = @renderPage(@)
@@ -76,7 +74,7 @@ class Reader
 
   build: (data)->
     curry = @getNavDocument(@)
-    @pagect = @parse.xml(data, curry).package.spine.itemref.length
+    pagect = @parse.xml(data, curry).package.spine.itemref.length
 
   on: (method, callback) ->
     evt = document.createEvent('CustomEvent')
@@ -91,16 +89,18 @@ class Reader
     #
     memStore.html.overflow = $('html').css('overflow')
     memStore.body.overflow = $('body').css('overflow')
+    $('html').addClass('reader')
     $('html,body').css({overflow:'hidden'})
 
-  destroy:()->
+  destroy:()=>
     # Reset previous attributes on html/body, and remove proxy element
     #
-    $('html').css({overflow:memStore.html.overflow})
+    $('html').css({overflow:memStore.html.overflow}).removeClass('reader')
     $('body').css({overflow:memStore.body.overflow})
+    @events.destroy()
     proxy = undefined
 
-  initialize: ->
+  initialize: =>
     token = if @options.toc then 'nav' else 'ncx'
     attr = if @options.toc then 'properties' else 'id'
     @nav.regexp = new RegExp("^#{token}$", 'i')
@@ -116,8 +116,7 @@ class Reader
           @trigger('layoutcomplete', {})
     )
 
-    target = document.body
-    observer.observe target,
+    observer.observe document.body,
       childList: true
       attributes: true
       attributeFilter: ['style']
@@ -131,31 +130,38 @@ class Reader
     @on 'layoutcomplete', =>
       console.log 'Reader layoutcomplete'
       @events.initialize()
-      setTimeout => @trigger('ready', {})
+      setTimeout (() => @trigger('ready', {}) ), 0
+
+
+    @on 'nextPage', => @events.nextPage()
+    @on 'prevPage', => @events.prevPage()
 
     @on 'ready', =>
       console.log 'Reader ready'
       $(@mainElem).addClass('ready')
 
+      # init scrolling
+      #
+      @swipe.initialize()
+
+      # some DOM manipulation for link behaviour
+      #
+      $('a').each (i, el)=>
+        $this = $(el)
+        if $this.attr('href').match(/^#/)
+          return
+        else if $this.attr('href').match(/^(?:\/|window.location.host)/)
+          $this.on 'click', => @destroy()
+        else
+          $this.attr('target', '_blank')
+
     @on 'destroy', =>
       @destroy()
-
-    # Event handlers
-    #
-    bounceResize = @events.debounce ()=>
-      @events.setColGap()
-      @events.setFrameWidth()
-      @events.setArticlePos()
-    , @delay
-
-    $(window).on 'resize', bounceResize
 
     # Important to destroy our proxy element, as it will continue to have
     # handlers attached unless it's removed
     #
     window.onunload = window.onpopstate = () => @destroy()
-    $("a[href^=\"/\"],a[href^=\"https?://(www\.)?#{window.location.host}\"]").on 'click', (e) =>
-      @destroy()
 
 
 window.Reader = Reader

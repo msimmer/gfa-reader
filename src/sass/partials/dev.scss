@@ -2,7 +2,10 @@
 // base
 //
 article{
-  @extend .break-before;
+  @extend .break-after;
+  &:after{
+    content: ' ';
+  }
   margin:0;
   padding:0;
   section{
@@ -43,10 +46,11 @@ div.img{
   right: -30px;
 }
 
-// site override
-section[ui-view="hero"],
-section[ui-view="books"],
-footer{
-  margin: 0!important;
+html.reader{
+  // site overrides
+  section[ui-view="hero"],
+  section[ui-view="books"],
+  footer{
+    margin: 0!important;
+  }
 }
-

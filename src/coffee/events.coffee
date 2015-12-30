@@ -2,6 +2,7 @@ class Reader::Events
 
   isScrolling     = false
   triggeredScroll = false
+  scrollTimer     = null
   minScroll       = -12
   maxScroll       = 12
   offset          = 15
@@ -19,6 +20,16 @@ class Reader::Events
   columns         = []
   frameMap        = []
 
+  delay           = 150
+
+  # Store handlers in private variables so that we can unbind them later
+  #
+  _keyPress      = null
+  _scrollChapter = null
+  _toggleNav     = null
+  _scrollToEl    = null
+  _bounceResize  = null
+
   defaults =
     reader        : '#reader-frame'
     docNav        : '#doc-nav'
@@ -32,11 +43,15 @@ class Reader::Events
     animSpeedFast : 500
     animSpeedSlow : 1000
 
+
   # helpers
   #
-  blockElems = ['address','article','aside','blockquote','canvas','dd','div','dl','fieldset','figcaption','figure','figcaption','footer','form','h1','h2','h3','h4','h5','h6','header','hgroup','hr','li','main','nav','noscript','ol','output','p','pre','section','table','tfoot','ul','video']
+  blocks = 'address article aside blockquote canvas dd div dl fieldset figcaption figure figcaption footer form h1 h2 h3 h4 h5 h6 header hgroup hr li main nav noscript ol output p pre section table tfoot ul video'
+  blocksArr = blocks.split(' ')
+  blocksSel = blocksArr.join(',')
+
   blockParent = (elem) ->
-    if blockElems.indexOf(elem[0].nodeName.toLowerCase()) > -1
+    if blocksArr.indexOf(elem[0].nodeName.toLowerCase()) > -1
       return elem
     else blockParent(elem.parent())
 
@@ -50,28 +65,13 @@ class Reader::Events
     #
     @nextPage = (callback)           -> @scrollPage(null, 1, callback)
     @prevPage = (callback)           -> @scrollPage(null, -1, callback)
-    @scrollTo = (selector, callback) -> @scrollToEl(null, selector, callback)
+    @scrollTo = (selector, callback) -> @_scrollToEl(null, selector, callback)
 
 
   preventDefault:(e)->
     if e and e.originalEvent
       e.preventDefault()
       e.stopPropagation()
-
-  debounce: (func, wait, immediate) ->
-    timeout = undefined
-    ->
-      context = this
-      args = arguments
-      later = ->
-        timeout = null
-        if !immediate
-          func.apply context, args
-      callNow = immediate and !timeout
-      clearTimeout(timeout)
-      timeout = setTimeout(later, wait)
-      if callNow
-        func.apply context, args
 
   setColGap:()->
     # default returns 45px, although it's set in ems
@@ -120,14 +120,21 @@ class Reader::Events
       frameMap[idx] = result
     maxLen = Math.floor(maxLen/2)
 
-  setArticlePos:()->
+  parseVals:(v1, v2)->
+    # since the values returned by jQuery's css method are in px, we can just
+    # add the values. may want to get these in a different way in the future though
+    #
+    parseInt(v1, 10) + parseInt(v2, 10)
+
+  sizeColumns:()->
     articles = $('[data-article]')
     elemPos = 0
     prevPos = 0
+    colCount = 0
     columns = []
-    articles.each (i, el) =>
-      el = $(el)
-      el.append('<span class="mrk"/>')
+    articles.each (i, article) =>
+      article = $(article)
+      article.append('<span class="mrk"/>')
       marker = $('.mrk')
 
       reader =
@@ -144,37 +151,103 @@ class Reader::Events
 
       elemPos = prevPos or 0
       prevPos = if pagePos < 0 then 0 else pagePos
+      colCount = Math.ceil((prevPos - elemPos) / pageWidth)
+      columns.push(colCount)
 
-      columns.push(Math.ceil((prevPos - elemPos) / pageWidth))
+      # top/bottom margins mess up our measurements on browsers that don't
+      # support CSS3 column-break, as they're not taken into account in the
+      # column height. replacing them with padding to get an accurate account.
+      # a stable solution obviously needs to be implemented, although
+      # rewriting the spacing on headers seems to work for the time being
+      #
+      elems = article.find('h1,h2,h3,h4,h5,h6')
+      elems.each (i, elem)=>
 
-      el.attr('data-offset-left', elemPos)
+        mTop = $(elem).css('margin-top')
+        mBot = $(elem).css('margin-bottom')
+
+        pTop = $(elem).css('padding-top')
+        pBot = $(elem).css('padding-bottom')
+
+        $(elem).css(
+          'margin-top': 0
+          'padding-top': @parseVals(mTop, pTop)
+        )
+        $(elem).css(
+          'margin-bottom': 0
+          'padding-bottom': @parseVals(mBot, pBot)
+        )
+
+      article.attr('data-offset-left', elemPos)
+      article.height(frame.height() * colCount)
+
       marker.remove()
 
       if i == articles.length - 1
         @mapColumns()
-        setTimeout =>
-          @returnToPos()
-        , 0
+        setTimeout (() => @returnToPos()), 0
 
-  bindElems:()->
-    $(document).on 'keydown', (e)            => @keyPress(e)
-    $(document).on 'click', '.doc-link', (e) => @scrollChapter(e)
-    $(@settings.navToggle).on 'click', (e)   => @toggleNav(e)
-    $(@settings.chFwd).on 'click', (e)       => @scrollChapter(e, 1)
-    $(@settings.chBack).on 'click', (e)      => @scrollChapter(e, -1)
-    $(@settings.pgFwd).on 'click', (e)       => @scrollPage(e, 1)
-    $(@settings.pgBack).on 'click', (e)      => @scrollPage(e, -1)
-    $(@settings.note).on 'click', (e)        => @scrollToEl(e, $(e.currentTarget).attr('href'))
+  bind:()->
+    _keyPress      = @_keyPress
+    _scrollChapter = @_scrollChapter
+    _toggleNav     = @_toggleNav
+    _scrollToEl    = @_scrollToEl
+    _bounceResize  = Reader::Utils.debounce ()=>
+      @setColGap()
+      @setFrameWidth()
+      @sizeColumns()
+    , delay
+
+    $(document).on 'keydown', _keyPress
+    $(document).on 'click', '.doc-link', _scrollChapter
+    $(@settings.navToggle).on 'click', _toggleNav
+    $(@settings.note).on 'click', _scrollToEl
+    $(window).on 'resize', _bounceResize
+
+  destroy:()->
+    $(document).off 'keydown', _keyPress
+    $(document).off 'click', '.doc-link', _scrollChapter
+    $(@settings.navToggle).off 'click', _toggleNav
+    $(@settings.note).off 'click', _scrollToEl
+    $(window).off 'resize', _bounceResize
 
   prepareScroll:(e)->
     @preventDefault(e)
     if isScrolling then frame.stop(true,true)
     isScrolling = true
 
-  scrollToEl:(e, selector, callback)->
+  scrollPage:(e, pos, callback)->
     @prepareScroll(e)
-    elem = $(selector)
-    if !elem.length
+    dist = frameWidth
+    currLeft = frame.scrollLeft()
+    dest = (dist * pos) + currLeft + (colGap * pos)
+    @animateScroll(dest, callback)
+
+  animateScroll:(dest, callback) ->
+    @closeNav()
+    frame
+      .stop(true, true)
+      .animate {scrollLeft: dest}, @settings.scrollSpeed, () =>
+        isScrolling = false
+        if callback and typeof callback == 'function'
+          callback()
+
+  closeNav:()->
+    navbar.removeClass('active')
+
+
+  # Private methods
+  #
+  _scrollToEl:(e, selector, callback)=>
+    @prepareScroll(e)
+    target = null
+    if selector and typeof selector == 'string'
+      target = selector
+    else if e?.target
+      target = e.target
+    elem = $($(target).attr('href'))
+
+    if !elem?.length
       return console.error "Error: Element '#{selector}' doesn't exist in the document."
 
     elemLeft = blockParent(elem).offset().left
@@ -201,44 +274,27 @@ class Reader::Events
         , fast
       , slow
 
-  scrollPage:(e, pos, callback)->
-    @prepareScroll(e)
-    dist = frameWidth
-    currLeft = frame.scrollLeft()
-    dest = (dist * pos) + currLeft + (colGap * pos)
-    @animateScroll(dest, callback)
-
-  scrollChapter:(e, callback)->
+  _scrollChapter:(e, callback)=>
     @prepareScroll(e)
     target = $("##{$(e.target).attr('data-link')}")
     dest = target.attr('data-offset-left')
     @animateScroll(dest, callback)
 
-  animateScroll:(dest, callback) ->
-    @closeNav()
-    frame
-      .stop(true, true)
-      .animate {scrollLeft: dest}, @settings.scrollSpeed, () =>
-        isScrolling = false
-        if callback and typeof callback == 'function'
-          callback()
-
-  closeNav:()->
-    navbar.removeClass('active')
-
-  keyPress:(e) ->
+  _keyPress:(e) =>
     if e and e.which
       switch e.which
         when 27 then @closeNav()
         when 37 then @scrollPage(e, -1)
         when 39 then @scrollPage(e, 1)
 
-  toggleNav: (e)->
+  _toggleNav: (e)=>
     @preventDefault(e)
     navbar.toggleClass('active')
 
+  # bootstrap
+  #
   initialize:()->
     @setFrameWidth()
     @setColGap()
-    @setArticlePos()
-    @bindElems()
+    @sizeColumns()
+    @bind()

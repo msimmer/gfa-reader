@@ -9,12 +9,12 @@
   page-break-inside: avoid;
   break-inside: avoid; }
 
-.break-before, article {
+.break-before {
   -webkit-column-break-before: always;
   page-break-before: always;
   break-before: always; }
 
-.break-after {
+.break-after, article {
   -webkit-column-break-after: always;
   page-break-after: always;
   break-after: always; }
@@ -51,12 +51,15 @@
 .icon-download2:before {
   content: "\e903"; }
 
-body {
+html.reader body {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0; }
+
+html.reader .wrapper {
+  display: block !important; }
 
 #reader-border {
   position: absolute;
@@ -69,7 +72,7 @@ body {
   #reader-border:before {
     content: ' ';
     display: table;
-    z-index: 1;
+    z-index: 0;
     background: black;
     height: 100%;
     width: 100%;
@@ -103,9 +106,9 @@ body {
   -webkit-column-span: none;
   -moz-column-span: none;
   column-span: none;
-  -webkit-column-width: 100%;
-  -moz-column-width: 100%;
-  column-width: 100%;
+  -webkit-column-width: auto;
+  -moz-column-width: auto;
+  column-width: auto;
   opacity: 0;
   transition: opacity 1s ease-out; }
   @media only screen and (max-width: 736px) {
@@ -132,9 +135,9 @@ body {
       -webkit-column-span: none;
       -moz-column-span: none;
       column-span: none;
-      -webkit-column-width: 100%;
-      -moz-column-width: 100%;
-      column-width: 100%;
+      -webkit-column-width: auto;
+      -moz-column-width: auto;
+      column-width: auto;
       height: calc(100% - 30px);
       padding: 15px;
       top: 15px;
@@ -152,8 +155,16 @@ body {
 Base element styles
 
 */
-a {
-  -webkit-tap-highlight-color: rgba(255, 255, 255, 0.2); }
+#reader-frame a {
+  -webkit-tap-highlight-color: rgba(255, 255, 255, 0.2);
+  word-wrap: break-word !important;
+  text-decoration: none !important;
+  border-bottom: 2px solid #000 !important;
+  padding-bottom: 2px !important; }
+  #reader-frame a:focus, #reader-frame a:active, #reader-frame a:hover, #reader-frame a:visited {
+    text-decoration: none !important;
+    border-bottom: 2px solid #000 !important;
+    padding-bottom: 2px !important; }
 
 .highlight {
   transition: background-color 0.3s ease-out; }
@@ -276,6 +287,8 @@ a {
 article {
   margin: 0;
   padding: 0; }
+  article:after {
+    content: ' '; }
   article section {
     margin: 0;
     padding: 0; }
@@ -303,7 +316,7 @@ div.img img {
 .icon-home3:before {
   right: -30px; }
 
-section[ui-view="hero"],
-section[ui-view="books"],
-footer {
+html.reader section[ui-view="hero"],
+html.reader section[ui-view="books"],
+html.reader footer {
   margin: 0 !important; }
