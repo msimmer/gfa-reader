@@ -9,7 +9,12 @@ $speed-fast:0.3s;
 $speed-slow:1s;
 $easing:ease-out;
 
+// media sizes
+//
+$device-width-sm: 300;
+$device-width-md: 736; // iPhone + width
+
 // media queries
 //
-$mq-mobile: 'only screen and (max-width:736px)'; // iPhone +
-$mq-desktop: 'only screen and (min-width:736px)';
+$mq-mobile: "only screen and (min-width:#{$device-width-sm}px) and (max-width:#{$device-width-md}px)";
+$mq-desktop: "only screen and (min-width:#{$device-width-sm}px)";

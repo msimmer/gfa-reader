@@ -10,6 +10,7 @@ class Reader::Events
   prevPos         = null
   currSpread      = null
   maxLen          = null
+  touch           = null
 
   colGap          = null
   frameWidth      = null
@@ -60,6 +61,7 @@ class Reader::Events
     @settings = $.extend({}, options, defaults)
     frame     = $(@settings.reader)
     navbar    = $(@settings.docNav)
+    touch     = Modernizr.touch
 
     # convenience methods, publicly available
     #
@@ -74,7 +76,7 @@ class Reader::Events
       e.stopPropagation()
 
   setColGap:()->
-    # default returns 45px, although it's set in ems
+    # default returns px value despite being set in ems/rems
     colGap = parseInt(frame.css('column-gap'), 10)
 
   setFrameWidth:()->
@@ -98,7 +100,7 @@ class Reader::Events
     @prepareScroll()
     @animateScroll(closest.pos, null, closest.idx)
 
-  mapColumns:()-> # TODO: set up distances for mobile
+  mapColumns:()->
     frameMap = []
     maxLen = 0
     screenW = 0
@@ -109,7 +111,7 @@ class Reader::Events
 
       if cols == 1
         result.push(screenW)
-        screenW += frameWidth / 2 + colGap - offset * 1.5
+        screenW += frameWidth / 2 + colGap - offset * 1.5 # TODO: abstract and store these calculations in variables
 
       else if cols >= 2
         panels = Math.ceil(cols/2)
@@ -142,10 +144,12 @@ class Reader::Events
         left: frame.offset().left
         scrollPos: frame.scrollLeft()
 
-      # inner dims of reader element
-      readerOffset = reader.left * 2
+      # inner dims of reader element, account for 1 or 2 column frames
+      readerOffset = if touch then reader.left - 30 else reader.left * 2 # TODO: abstract and store these calculations in variables
+
       # single page width, including inner page padding
-      pageWidth = reader.width / 2 + reader.left
+      pageWidth = if touch then reader.width else reader.width / 2 + reader.left
+
       # marker relates to prev. page's beginning
       pagePos = (reader.scrollPos + marker.offset().left) - readerOffset + pageWidth
 
@@ -156,30 +160,34 @@ class Reader::Events
 
       # top/bottom margins mess up our measurements on browsers that don't
       # support CSS3 column-break, as they're not taken into account in the
-      # column height. replacing them with padding to get an accurate account.
+      # column height. replacing them with padding to get an accurate count.
       # a stable solution obviously needs to be implemented, although
-      # rewriting the spacing on headers seems to work for the time being
+      # rewriting the spacing on headers seems to work for the time being.
+      # doesn't apply to iOS/mobile, so we won't run on these platforms.
       #
-      elems = article.find('h1,h2,h3,h4,h5,h6')
-      elems.each (i, elem)=>
+      if touch == false
 
-        mTop = $(elem).css('margin-top')
-        mBot = $(elem).css('margin-bottom')
+        elems = article.find('h1,h2,h3,h4,h5,h6')
+        elems.each (i, elem)=>
 
-        pTop = $(elem).css('padding-top')
-        pBot = $(elem).css('padding-bottom')
+          mTop = $(elem).css('margin-top')
+          mBot = $(elem).css('margin-bottom')
 
-        $(elem).css(
-          'margin-top': 0
-          'padding-top': @parseVals(mTop, pTop)
-        )
-        $(elem).css(
-          'margin-bottom': 0
-          'padding-bottom': @parseVals(mBot, pBot)
-        )
+          pTop = $(elem).css('padding-top')
+          pBot = $(elem).css('padding-bottom')
+
+          $(elem).css(
+            'margin-top': 0
+            'padding-top': @parseVals(mTop, pTop)
+          )
+          $(elem).css(
+            'margin-bottom': 0
+            'padding-bottom': @parseVals(mBot, pBot)
+          )
+
+          article.height(frame.height() * colCount)
 
       article.attr('data-offset-left', elemPos)
-      article.height(frame.height() * colCount)
 
       marker.remove()
 
@@ -254,7 +262,10 @@ class Reader::Events
     currLeft = frame.scrollLeft()
     refWidth = frameWidth + colGap
 
-    elemLeft -= refWidth/2 + colGap + offset
+    if !touch
+      elemLeft -= refWidth/2 + (colGap + offset)
+    else
+      elemLeft -= 30
 
     targetSpread = (elemLeft + currLeft) / refWidth
     currentSpread = currLeft / refWidth

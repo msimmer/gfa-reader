@@ -1,101 +1,43 @@
 class Reader::Swipe
 
+  frame   = null
+  frameId = null
+  hammer  = null
+
   defaults =
-    reader : '#reader-frame'
+    reader: '#reader-frame'
+    touchOptions: {}
 
-  frame                = null
-  readerId             = null
+  _hammerCtrl = null
 
-  _support             = undefined
-  _addPrefix           = ''
-  _removePrefix        = ''
-  _addEventListener    = undefined
-  _addWheelListener    = undefined
-  _removeEventListener = undefined
-  _removeWheelListener = undefined
-
-  constructor:(@options = {}) ->
-    @settings = $.extend({}, @options, defaults)
-    readerId = @settings.reader.slice(1)
-    _support = if 'onwheel' of document.createElement('div') then 'wheel' else if document.onmousewheel != undefined then 'mousewheel' else 'DOMMouseScroll'
+  constructor: (@options = {})->
+    @settings = $.extend({}, defaults, @options)
     frame = $(@settings.reader)
+    frameId = @settings.reader.slice(1)
 
   bind:()->
-    @doScroll = Reader::Utils.debounce (e) =>
-      if e.deltaX >= 1
-        Reader::trigger('nextPage', {})
-      else if e.deltaX <= -1
-        Reader::trigger('prevPage', {})
-    , 50, true
+    # if 'ontouchstart' of document.documentElement
+    #   document.body.ontouchstart = (e)-> return
 
-    _doScroll = (e)=>
-      e.preventDefault()
-      @doScroll(e)
+  destroy:()->
+    # if 'ontouchstart' of document.documentElement
+    #   document.body.ontouchstart = null
+    _hammerCtrl.destroy()
 
-    @addWheelListener(document.getElementById(readerId), _doScroll, false)
+  swipeLeft:()-> Reader::trigger('nextPage')
+  swipeRight:()-> Reader::trigger('prevPage')
 
-  doScroll: () ->
-  addWheelListener:()->
-  removeWheelListener:()->
+  setup:()->
+    _hammerCtrl = new Hammer.Manager(document.getElementById(frameId),
+      recognizers:[
+        [Hammer.Swipe, { direction: Hammer.DIRECTION_ALL }]
+      ]
+    )
 
-  destroy:() =>
-    @removeWheelListener(document.getElementById(readerId), _doScroll)
+    _hammerCtrl.on 'swipe', (e)=>
+      if e.deltaX < 0 then @swipeLeft()
+      else if e.deltaX > 0 then @swipeRight()
 
-  compatRemove:(_this)->
-    if window.removeEventListener
-      _removeEventListener = 'removeEventListener'
-    else
-      _removeEventListener = 'detachEvent'
-      _removePrefix = 'on'
-
-    _this.removeWheelListener = (elem, callback) ->
-      _removeWheelListener elem, _support, callback
-      if _support == 'DOMMouseScroll'
-        _removeWheelListener elem, 'MozMousePixelScroll', callback
-
-    _removeWheelListener = (elem, eventName, callback) ->
-      elem[_removeEventListener](_removePrefix + eventName, callback)
-
-
-  # shim for attaching events to `wheel` given browser incompatibilities,
-  # taken from https://developer.mozilla.org/en-US/docs/Web/Events/wheel
-  #
-  compatAdd:(_this)->
-
-    if window.addEventListener
-      _addEventListener = 'addEventListener'
-    else
-      _addEventListener = 'attachEvent'
-      _addPrefix = 'on'
-
-    _this.addWheelListener = (elem, callback, useCapture) ->
-      _addWheelListener elem, _support, callback, useCapture
-      if _support == 'DOMMouseScroll'
-        _addWheelListener elem, 'MozMousePixelScroll', callback, useCapture
-
-    _addWheelListener = (elem, eventName, callback, useCapture) ->
-      elem[_addEventListener](_addPrefix + eventName, (if _support == 'wheel' then callback else (originalEvent)->
-        !originalEvent and (originalEvent = window.event)
-        event =
-          originalEvent: originalEvent
-          target: originalEvent.target or originalEvent.srcElement
-          type: 'wheel'
-          deltaMode: if originalEvent.type == 'MozMousePixelScroll' then 0 else 1
-          deltaX: 0
-          deltaZ: 0
-          preventDefault: (->
-            if originalEvent.preventDefault then originalEvent.preventDefault() else (originalEvent.returnValue = false)
-            return
-          )
-        if _support == 'mousewheel'
-          event.deltaY = -1 / 40 * originalEvent.wheelDelta
-          originalEvent.wheelDeltaX and (event.deltaX = -1 / 40 * originalEvent.wheelDeltaX)
-        else
-          event.deltaY = originalEvent.detail
-        callback event
-      ), useCapture or false)
-
-  initialize:()->
-    @compatAdd(@)
-    @compatRemove(@)
+  initialize:()=>
     @bind()
+    @setup()

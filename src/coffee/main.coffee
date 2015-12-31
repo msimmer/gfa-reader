@@ -20,6 +20,7 @@ class Reader
     @layout   = new @Layout()
     @template = new @Template()
     @events   = new @Events()
+    @wheel    = new @Wheel()
     @swipe    = new @Swipe()
 
     @package =
@@ -98,6 +99,7 @@ class Reader
     $('html').css({overflow:memStore.html.overflow}).removeClass('reader')
     $('body').css({overflow:memStore.body.overflow})
     @events.destroy()
+    @swipe.destroy()
     proxy = undefined
 
   initialize: =>
@@ -140,9 +142,13 @@ class Reader
       console.log 'Reader ready'
       $(@mainElem).addClass('ready')
 
-      # init scrolling
+      # init wheel event handling
       #
-      @swipe.initialize()
+      @wheel.initialize()
+
+      # init touch event handling
+      #
+      if Modernizr.touch then @swipe.initialize()
 
       # some DOM manipulation for link behaviour
       #

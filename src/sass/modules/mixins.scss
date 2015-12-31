@@ -24,30 +24,28 @@
 @mixin break($media){
   @if $media == 'mobile'  {
     @media #{$mq-mobile} { @content }
-  }
-  @else if $media == 'desktop' {
+  } @else if $media == 'desktop' {
     @media #{$mq-desktop} { @content }
-  }
-  @else {
+  } @else {
     @if feature-exists('at-error') == true {
       @error "#{$media} is not a supported media type.";
-    }
-    @else {
-      @warn "`#{$media}` is not a supported media type."
+    } @else {
+      @warn "\"#{$media}\" is not a supported media type."
     }
   }
 }
 
 @mixin columns(){
   column-count: 2;
-  @include break('mobile') {
-    column-count: 1;
-  }
   column-fill: auto;
   column-gap: 3em;
   column-rule: 0;
   column-span: none;
   column-width:auto;
+  @include break('mobile') {
+    column-count: 1;
+    column-width:#{$device-width-sm}px;
+  }
 }
 
 // should be applied on parent `ol`
