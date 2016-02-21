@@ -19,13 +19,12 @@ html.reader{
   left: 0;
   height: 100%;
   width: 100%;
-  background: transparent url('../img/pattern.jpeg') no-repeat center center;
-  background-size: cover;
+  background-color: transparent;
   &:before{
     content: ' ';
     display: table;
     z-index: 0;
-    background: black;
+    background: transparent;
     height: 100%;
     width: 100%;
     filter:opacity(0.5);
@@ -38,14 +37,14 @@ html.reader{
   overflow: hidden;
   position:absolute;
   background-color: white;
-  top:$padding-md;
-  bottom:$padding-md;
-  right:$padding-md;
-  left:$padding-md;
+  top:$padding-sm;
+  bottom:$padding-sm;
+  right:$padding-sm;
+  left:$padding-sm;
   width:auto;
   height: 100%;
-  height:calc(100% - #{$padding-md*2});
-  padding:$padding-md;
+  height:calc(100% - #{$padding-sm*2});
+  padding:$padding-sm;
   @include columns;
   opacity: 1;
   transition:opacity $speed-slow $easing;

@@ -31,3 +31,20 @@ html.reader{
 .highlight-add{
   background-color: #ff0!important;
 }
+
+.img{
+  text-align: center;
+  img{
+    display: inline-block;
+  }
+}
+
+.media{
+  margin:0;
+  padding:1rem 0;
+  audio,
+  video{
+    display: block;
+    width: 100%;
+  }
+}

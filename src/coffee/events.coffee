@@ -5,7 +5,7 @@ class Reader::Events
   scrollTimer     = null
   minScroll       = -12
   maxScroll       = 12
-  offset          = 15
+  offset          = 15 # TODO: move this to frmDims obj
   elemPos         = null
   prevPos         = null
   currSpread      = null
@@ -16,12 +16,14 @@ class Reader::Events
   frameWidth      = null
 
   frame           = null
+  frmDims         = {}
   navbar          = null
 
   columns         = []
   frameMap        = []
 
   delay           = 150
+
 
   # Store handlers in private variables so that we can unbind them later
   #
@@ -58,10 +60,18 @@ class Reader::Events
 
   constructor: (options = {}) ->
 
-    @settings = $.extend({}, options, defaults)
-    frame     = $(@settings.reader)
-    navbar    = $(@settings.docNav)
-    touch     = Modernizr.touch
+    @settings   = $.extend({}, options, defaults)
+    frame       = $(@settings.reader)
+    navbar      = $(@settings.docNav)
+    touch       = Modernizr.touch
+    frmDims =
+      top: frame.offset().top
+      left: frame.offset().top
+      gap: parseInt(frame.css('column-gap'), 10)
+
+    console.log frmDims
+
+
 
     # convenience methods, publicly available
     #
@@ -272,18 +282,17 @@ class Reader::Events
 
     elemLeft = blockParent(elem).offset().left
     currLeft = frame.scrollLeft()
-    refWidth = frameWidth + colGap
 
     if !touch
-      elemLeft -= refWidth/2 + (colGap + offset)
+      elemLeft -= frameWidth/2 + (colGap + offset)
     else
-      elemLeft -= 30
+      elemLeft -= frmDims.left
 
-    targetSpread = (elemLeft + currLeft) / refWidth
-    currentSpread = currLeft / refWidth
+    targetSpread = (elemLeft + currLeft) / frameWidth
+    currentSpread = currLeft / frameWidth
 
     diff = targetSpread - currentSpread
-    dest = currLeft + (diff * refWidth)
+    dest = currLeft + (diff * frameWidth)
 
     fast = @settings.animSpeedFast
     slow = @settings.animSpeedSlow

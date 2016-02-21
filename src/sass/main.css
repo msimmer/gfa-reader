@@ -67,13 +67,12 @@ html.reader .wrapper {
   left: 0;
   height: 100%;
   width: 100%;
-  background: transparent url("../img/pattern.jpeg") no-repeat center center;
-  background-size: cover; }
+  background-color: transparent; }
   #reader-border:before {
     content: ' ';
     display: table;
     z-index: 0;
-    background: black;
+    background: transparent;
     height: 100%;
     width: 100%;
     -webkit-filter: opacity(0.5);
@@ -83,14 +82,14 @@ html.reader .wrapper {
   overflow: hidden;
   position: absolute;
   background-color: white;
-  top: 30px;
-  bottom: 30px;
-  right: 30px;
-  left: 30px;
+  top: 15px;
+  bottom: 15px;
+  right: 15px;
+  left: 15px;
   width: auto;
   height: 100%;
-  height: calc(100% - 60px);
-  padding: 30px;
+  height: calc(100% - 30px);
+  padding: 15px;
   -webkit-column-count: 2;
   -moz-column-count: 2;
   column-count: 2;
@@ -110,7 +109,7 @@ html.reader .wrapper {
   -moz-column-width: auto;
   column-width: auto;
   opacity: 1;
-  transition: opacity 1s ease-out; }
+  transition: opacity 8s ease-out; }
   @media only screen and (min-width: 300px) and (max-width: 736px) {
     #reader-frame {
       -webkit-column-count: 1;
@@ -174,12 +173,25 @@ Base element styles
     padding-bottom: 2px !important; }
 
 .highlight {
-  transition: background-color 0.3s ease-out; }
+  transition: background-color 0.1s ease-out; }
 
 .highlight-add {
   background-color: #ff0 !important; }
 
-#reader-nav ul li a.nav-link, #doc-nav ol li a {
+.img {
+  text-align: center; }
+  .img img {
+    display: inline-block; }
+
+.media {
+  margin: 0;
+  padding: 1rem 0; }
+  .media audio,
+  .media video {
+    display: block;
+    width: 100%; }
+
+#doc-nav ol li a {
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
@@ -193,7 +205,7 @@ Base element styles
   padding: 0;
   margin: 0;
   border: 0; }
-  #reader-nav ul li a.nav-link:hover, #doc-nav ol li a:hover, #reader-nav ul li a.nav-link:active, #doc-nav ol li a:active, #reader-nav ul li a.nav-link:focus, #doc-nav ol li a:focus, #reader-nav ul li a.nav-link:visited, #doc-nav ol li a:visited {
+  #doc-nav ol li a:hover, #doc-nav ol li a:active, #doc-nav ol li a:focus, #doc-nav ol li a:visited {
     color: #fff;
     text-decoration: none;
     border: 0; }
@@ -209,6 +221,7 @@ Base element styles
   padding: 0; }
   #reader-nav ul {
     height: 30px;
+    list-style: none;
     display: -webkit-flex;
     display: -ms-flexbox;
     display: flex;
@@ -222,30 +235,29 @@ Base element styles
     -ms-flex-align: center;
     align-items: center; }
     #reader-nav ul li {
-      height: 100%;
-      display: -webkit-flex;
-      display: -ms-flexbox;
-      display: flex; }
+      margin: 2px;
+      top: 5px;
+      position: relative;
+      right: -28px; }
       #reader-nav ul li a.nav-link {
-        position: relative;
-        top: -1px;
-        opacity: 0.7;
-        transition: opacity 0.3s ease-out;
-        -webkit-justify-content: flex-end;
-        -ms-flex-pack: end;
-        justify-content: flex-end;
-        width: 60px; }
+        background-color: transparent;
+        text-decoration: none;
+        opacity: 0.3;
+        transition: opacity 0.1s ease-out;
+        border: 0; }
         #reader-nav ul li a.nav-link:hover {
-          opacity: 1; }
+          opacity: 1;
+          text-decoration: none;
+          border: 0; }
 
 #doc-nav {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   -webkit-transform: translate3d(300px, 0, 0);
   transform: translate3d(300px, 0, 0);
-  transition: -webkit-transform 0.3s ease-out;
-  transition: transform 0.3s ease-out;
-  transition: transform 0.3s ease-out, -webkit-transform 0.3s ease-out;
+  transition: -webkit-transform 0.1s ease-out;
+  transition: transform 0.1s ease-out;
+  transition: transform 0.1s ease-out, -webkit-transform 0.1s ease-out;
   -webkit-overflow-scrolling: touch;
   position: absolute;
   top: 0;
@@ -310,20 +322,17 @@ div.img img {
 .icon-list:before,
 .icon-home3:before {
   color: #000;
-  font-size: 1.6rem;
+  font-size: 1.2rem;
   border: 2px solid #000;
   border-radius: 100%;
-  padding: 10px;
-  position: relative;
-  top: 20px;
-  right: -15px;
+  padding: 5px;
   z-index: 1;
-  background: #fff; }
-
-.icon-home3:before {
-  right: -30px; }
+  background: #fff;
+  position: relative;
+  top: -1px; }
 
 html.reader section[ui-view="hero"],
 html.reader section[ui-view="books"],
 html.reader footer {
-  margin: 0 !important; }
+  margin: 0 !important;
+  background-color: transparent; }

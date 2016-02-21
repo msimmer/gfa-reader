@@ -32,23 +32,26 @@
   padding:0;
   ul{
     height: $padding-md;
+    list-style: none;
     display: flex;
     flex-direction:row;
     justify-content:flex-end;
     align-items:center;
     li{
-      height: 100%;
-      display: flex;
+      margin: 2px;
+      top: 5px;
+      position: relative;
+      right: -28px;
       a.nav-link{
-        @extend %nav-link;
-        position: relative;
-        top: -1px;
-        opacity: 0.7;
+        background-color: transparent;
+        text-decoration: none;
+        opacity: 0.3;
         transition:opacity $speed-fast $easing;
-        justify-content:flex-end;
-        width: 60px;
+        border: 0;
         &:hover{
           opacity: 1;
+          text-decoration: none;
+          border: 0;
         }
       }
     }
