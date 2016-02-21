@@ -16,7 +16,8 @@ rev        = require 'gulp-rev'
 
 # should match modules/environment.php
 CACHE_ARGS = '4b9624cc-0ba1-4872-af4d-ed08273a7a15'
-SITE_PATH = '/wp-content/themes/html5blank/<?= SITE_ENV_DIR; ?>'
+# SITE_PATH = '/wp-content/themes/html5blank/<?= SITE_ENV_DIR; ?>'
+SITE_PATH = '<?= get_template_directory_uri(); ?>'
 READER_PATH = '/reader'
 
 gulp.task 'sass', ->

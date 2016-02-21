@@ -75,6 +75,17 @@ class Reader::Events
       e.preventDefault()
       e.stopPropagation()
 
+  resizeImages:()->
+    $('img').each (i, o)=>
+      @setImageSize.call($(o)[0])
+
+  setImageSize:()->
+    $this = $(@)
+    readerInnerHeight = frame.height()
+    if @naturalHeight > @naturalWidth
+      $this.css({'max-height':'100%'})
+      $this.parent('.img').css({'max-height': readerInnerHeight, 'height': readerInnerHeight})
+
   setColGap:()->
     # default returns px value despite being set in ems/rems
     colGap = parseInt(frame.css('column-gap'), 10)
@@ -201,6 +212,7 @@ class Reader::Events
     _toggleNav     = @_toggleNav
     _scrollToEl    = @_scrollToEl
     _bounceResize  = Reader::Utils.debounce ()=>
+      @resizeImages()
       @setColGap()
       @setFrameWidth()
       @sizeColumns()
@@ -305,6 +317,9 @@ class Reader::Events
   # bootstrap
   #
   initialize:()->
+    $('img').each (i, o)=>
+      $(o)[0].onload = @setImageSize
+    @resizeImages()
     @setFrameWidth()
     @setColGap()
     @sizeColumns()

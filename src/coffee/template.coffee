@@ -27,13 +27,20 @@ class Reader::Template
 
   parse: (str, abspath) ->
     while (match = @regex.exec(str)) != null
+
       asset = match[1]
-      path = "#{abspath}#{@titleCase(match[2])}/#{asset}"
+      type = match[2]
 
-      # currently only images
-      #
-      elem = "<img alt=\"#{asset}\" src=\"#{path}\"/>"
+      console.log type
+      dir = if type == 'audio' or type == 'video' then 'misc' else type
+      path = "#{abspath}#{@titleCase(dir)}/#{asset}"
+      elem = null
+
+      if type == 'images'
+        elem = "<img alt=\"#{asset}\" src=\"#{path}\"/>"
+      else if type == 'audio'
+        elem = "<audio src=\"#{path}\" controls=\"controls\" preload=\"none\"></audio>"
+
       str = str.replace(match[0], elem)
+
     return str
-
-
