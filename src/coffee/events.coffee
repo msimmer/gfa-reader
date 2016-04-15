@@ -41,7 +41,8 @@ class Reader::Events
     chFwd         : '[data-nav=chFwd]'
     pgBack        : '[data-nav=pgBack]'
     pgFwd         : '[data-nav=pgFwd]'
-    note          : 'a.fn'
+    btnNote       : 'a.btn-note'
+    btnNoteClose  : 'a.note-close'
     scrollSpeed   : 400
     animSpeedFast : 500
     animSpeedSlow : 1000
@@ -68,10 +69,6 @@ class Reader::Events
       top: frame.offset().top
       left: frame.offset().top
       gap: parseInt(frame.css('column-gap'), 10)
-
-    console.log frmDims
-
-
 
     # convenience methods, publicly available
     #
@@ -206,7 +203,7 @@ class Reader::Events
             'padding-bottom': @parseVals(mBot, pBot)
           )
 
-          article.height(frame.height() * colCount)
+          # article.height(frame.height() * colCount)
 
       article.attr('data-offset-left', elemPos)
 
@@ -221,6 +218,8 @@ class Reader::Events
     _scrollChapter = @_scrollChapter
     _toggleNav     = @_toggleNav
     _scrollToEl    = @_scrollToEl
+    _noteClick     = @_noteClick
+    _noteClose     = @_noteClose
     _bounceResize  = Reader::Utils.debounce ()=>
       @resizeImages()
       @setColGap()
@@ -231,18 +230,25 @@ class Reader::Events
     $(document).on 'keydown', _keyPress
     $(document).on 'click', '.doc-link', _scrollChapter
     $(@settings.navToggle).on 'click', _toggleNav
-    $(@settings.note).on 'click', _scrollToEl
+    $(@settings.btnNote).on 'click', _noteClick
+    $(@settings.btnNoteClose).on 'click', _noteClose
     $(window).on 'resize', _bounceResize
 
   destroy:()->
     $(document).off 'keydown', _keyPress
     $(document).off 'click', '.doc-link', _scrollChapter
-    $(@settings.navToggle).off 'click', _toggleNav
-    $(@settings.note).off 'click', _scrollToEl
+    if $(@settings.navToggle).length
+      $(@settings.navToggle).off 'click', _toggleNav
+    if $(@settings.btnNote).length
+      $(@settings.btnNote).off 'click', _noteClick
+    if $(@settings.btnNoteClose).length
+      $(@settings.btnNoteClose).off 'click', _noteClose
+
     $(window).off 'resize', _bounceResize
 
   prepareScroll:(e)->
     @preventDefault(e)
+    @hideCaptions()
     if isScrolling then frame.stop(true,true)
     isScrolling = true
 
@@ -265,9 +271,50 @@ class Reader::Events
   closeNav:()->
     navbar.removeClass('active')
 
+  hideCaptions:()->
+    $(@settings.btnNote).each ->
+      if $(@).hasClass('visible')
+        $(@).triggerHandler 'click'
+
+  toggleNote:(target, ref)->
+    note = $("[data-note=\"#{ref}\"]")
+    button = $(target)
+    button.toggleClass('visible')
+    if note.hasClass('visible')
+      note.removeClass('visible').removeClass('opaque')
+    else
+      note.addClass('visible')
+      setTimeout =>
+        if touch
+          note.css(
+            top: 15
+            right:15
+            bottom:15
+            left: 15
+          )
+        else
+          cT = $(window).height() / 2 - note.height() / 2
+          cL = $(window).width() / 2 - note.width() / 2
+          note.css(
+            top: if cT < 15 then 15 else cT
+            left: if cL < 15 then 15 else cL
+          )
+        note.addClass('opaque')
+      , 0
+
 
   # Private methods
   #
+  _noteClose:(e)=>
+    @preventDefault(e)
+    @hideCaptions()
+
+  _noteClick:(e)=>
+    @preventDefault(e)
+    target = e.target
+    ref = $(target).attr('data-note-toggle')
+    @toggleNote(target, ref)
+
   _scrollToEl:(e, selector, callback)=>
     @prepareScroll(e)
     target = null

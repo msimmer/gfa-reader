@@ -1,0 +1,117 @@
+
+// gfa custom styles
+// scope to access nested selectors
+#reader-frame{
+
+  div.img{
+
+    &.img-caption {
+      position: relative;
+
+      a.btn-caption{
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        display: block;
+        height: 40px;
+        width: 40px;
+        border: none!important;
+        text-decoration: none!important;
+        z-index: 9999;
+        overflow: scroll;
+        -webkit-overflow-scrolling:touch;
+
+        background-color: transparent!important;
+        background-repeat: no-repeat;
+        background-position: center;
+
+        opacity: 0.5;
+        transition:opacity $speed-fast $easing;
+        &:hover{
+          opacity: 1;
+          text-decoration: none!important;
+          border: 0!important;
+        }
+
+        background-image: url('../img/noun_351608_cc.svg');
+        &.visible{
+          opacity: 1;
+          background-image: url('../img/noun_351289_cc.svg');
+        }
+
+
+      } // .btn-caption
+    }
+
+  } // .img
+
+
+  .note,
+  .caption{
+    position: fixed;
+    visibility: hidden;
+    opacity: 0;
+    transition:opacity $speed-fast $easing;
+    &.visible{
+      top:0;
+      left: 0;
+      visibility: visible;
+      text-align: center;
+      background: $white;
+      border: 1px solid $black;
+      padding: $padding-sm;
+      z-index: 999;
+      max-width: 60%;
+      @include break('mobile') {
+        width: calc( 100% - #{$padding-md} );
+        max-width: 100%;
+      }
+      &.opaque{
+        opacity: 1;
+      }
+    }
+  } // .caption
+
+  a.btn-note.btn-footnote{
+    text-indent: 0!important;
+    border: 1px solid $black!important;
+    border-radius: 50%;
+    background: $white!important;
+    color: $black!important;
+    display: inline-block;
+    font-size: 14px;
+    line-height: 1;
+    height: 18px;
+    width: 18px;
+    font-family: Helvetica;
+    text-align: center;
+    position: relative;
+    top: -2px;
+  }
+
+
+  .note-close{
+    text-indent: 0!important;
+    display: block;
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    background: $black!important;
+    color: $white;
+    height: 34px;
+    width: 34px;
+    line-height: 1;
+    border: 2px solid $white!important;
+    font-size: 30px!important;
+    &:hover,
+    &:active,
+    &:focus{
+      border: 2px solid $white!important;
+    }
+  }
+
+  [data-note]{
+    font-size: 1.6em;
+  }
+
+} // #reader-frame

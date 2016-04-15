@@ -8,7 +8,6 @@ uglify     = require 'gulp-uglify'
 minify     = require 'gulp-minify-css'
 del        = require 'del'
 connect    = require 'gulp-connect'
-# bowerFiles = require 'main-bower-files'
 inject     = require 'gulp-inject'
 evtstr     = require 'event-stream'
 concat     = require 'gulp-concat'
@@ -16,7 +15,6 @@ rev        = require 'gulp-rev'
 
 # should match modules/environment.php
 CACHE_ARGS = '4b9624cc-0ba1-4872-af4d-ed08273a7a15'
-# SITE_PATH = '/wp-content/themes/html5blank/<?= SITE_ENV_DIR; ?>'
 SITE_PATH = '<?= get_template_directory_uri(); ?>'
 READER_PATH = '/reader'
 
@@ -55,26 +53,16 @@ gulp.task 'inject:development', ->
     '../footer.php',
     '../index.php'
   ])
-
-  # bower asssets added by the site, so disabling here
-  #
-
-  # .pipe inject(gulp.src(bowerFiles(
-  #   'overrides':
-  #     'modernizr':
-  #       'main': 'modernizr.js'
-  # ), {read: false}), {
-  #   name: 'bower', relative:false
-  #   transform: (filepath, file, i, length)->
-  #     "<script src=\"#{SITE_PATH}#{READER_PATH}#{filepath}?v=#{CACHE_ARGS}\"></script>"
-  # })
-
-  .pipe(inject(gulp.src('src/css/*.css', {read:false}), {
+  .pipe(inject(gulp.src([
+    'src/bower_components/nprogress/nprogress.css'
+    'src/css/*.css'
+  ], {read:false}), {
     relative:false
     transform: (filepath, file, i, length)->
       "<link rel=\"stylesheet\" type=\"text/css\" href=\"#{SITE_PATH}#{READER_PATH}#{filepath}?v=#{CACHE_ARGS}\"/>"
   }))
   .pipe inject(gulp.src([
+    'src/bower_components/nprogress/nprogress.js'
     'src/vendor/**/*.js'
     'src/js/main.js'
     'src/js/*.js'
@@ -86,32 +74,39 @@ gulp.task 'inject:development', ->
   .pipe gulp.dest '../'
 
 gulp.task 'inject:production', ['rev'], ->
-  gulp.src 'dist/index.html'
-  .pipe inject gulp.src 'dist/css/*.css', {read:false}
-  .pipe inject gulp.src 'dist/js/*.js', {read:false}
-  .pipe gulp.dest 'dist'
+  return gulp.src([
+    '../header.php',
+    '../footer.php',
+    '../index.php'
+  ])
+  .pipe inject(gulp.src('dist/css/*.css', {read:false}),{
+    relative:false
+    transform:(filepath, file, i, length)->
+      "<link rel=\"stylesheet\" type=\"text/css\" href=\"#{SITE_PATH}#{READER_PATH}#{filepath}\"/>"
+  })
+  .pipe inject(gulp.src('dist/js/*.js', {read:false}),{
+    relative:false
+    transform:(filepath, file, i, length)->
+      "<script src=\"#{SITE_PATH}#{READER_PATH}#{filepath}\"></script>"
+  })
+  .pipe gulp.dest '../'
 
-gulp.task 'rev', ->
-  gulp.src ['src/css/*.css']
+gulp.task 'rev', ['clean', 'copy'], ->
+  gulp.src [
+    'src/css/*.css'
+    'src/bower_components/nprogress/nprogress.css'
+  ]
     .pipe minify()
     .pipe rev()
     .pipe gulp.dest 'dist/css'
 
   gulp.src([
-    'src/vendor/*.js'
+    'src/bower_components/nprogress/nprogress.js'
+    'src/vendor/scoped-polyfill-master/scoped.js'
+    'src/vendor/hammer/hammer.min.js'
     'src/js/main.js'
     'src/js/*.js'
   ])
-  # gulp.src(
-  #   bowerFiles(
-  #     overrides:
-  #       modernizr:
-  #         main:'modernizr.js'
-  #   ).concat [
-  #     'src/vendor/*.js'
-  #     'src/js/main.js'
-  #     'src/js/*.js'
-  #   ])
   .pipe concat('main.js')
   .pipe uglify()
   .pipe rev()
@@ -121,7 +116,6 @@ gulp.task 'watch', ->
   gulp.watch([
     'src/js/**/*.js'
     'src/css/**/*.css'
-    '*.{html,xhtml,htm}'
     '../*.php'
     '../components/*.php'
   ]).on 'change', (file) ->
@@ -133,16 +127,18 @@ gulp.task 'watch', ->
   gulp.watch 'src/sass/main.css', ['styles']
 
 gulp.task 'clean', ->
-  del ['dist/**']
+  return del ['dist/']
 
-gulp.task 'copy', ->
+gulp.task 'copy', ['clean'], ->
   gulp.src [
-    '*.html'
     'src/img/**/*.{jpg,png,svg,gif,webp,ico}'
+  ]
+  .pipe gulp.dest 'dist/img'
+
+  gulp.src [
     'src/fonts/**/*.*'
-  ],
-    base: './'
-  .pipe gulp.dest 'dist'
+  ]
+  .pipe gulp.dest 'dist/fonts'
 
 gulp.task 'connect:development', ->
   connect.server
@@ -168,5 +164,5 @@ gulp.task 'build', [
   'styles'
   'coffee'
   'inject:production'
-  'connect:production'
+  # 'connect:production'
   ], -> @

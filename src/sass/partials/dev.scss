@@ -3,6 +3,7 @@
 //
 article{
   @extend .break-after;
+  height: auto;
   &:after{
     content: ' ';
   }

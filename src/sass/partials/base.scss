@@ -4,6 +4,7 @@ Base element styles
 
 */
 html.reader{
+  font-size: 62.5%;
   div.img{
     @extend .no-column-break;
   }

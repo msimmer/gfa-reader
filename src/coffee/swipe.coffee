@@ -20,9 +20,7 @@ class Reader::Swipe
     #   document.body.ontouchstart = (e)-> return
 
   destroy:()->
-    # if 'ontouchstart' of document.documentElement
-    #   document.body.ontouchstart = null
-    _hammerCtrl.destroy()
+    _hammerCtrl.destroy() if _hammerCtrl
 
   swipeLeft:()-> Reader::trigger('nextPage')
   swipeRight:()-> Reader::trigger('prevPage')

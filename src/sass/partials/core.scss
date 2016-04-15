@@ -6,6 +6,7 @@ html.reader{
     left: 0;
     right: 0;
     bottom: 0;
+    background-color: #fff;
   }
   .wrapper{
     display: block!important;
@@ -19,12 +20,12 @@ html.reader{
   left: 0;
   height: 100%;
   width: 100%;
-  background-color: transparent;
+  background-color: $white;
   &:before{
     content: ' ';
     display: table;
     z-index: 0;
-    background: transparent;
+    background: $white;
     height: 100%;
     width: 100%;
     filter:opacity(0.5);

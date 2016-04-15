@@ -8,6 +8,16 @@ class Reader
 
   constructor: (@options = {})->
 
+    # Kick off our progress bar
+    #
+    $('.wrapper').css('visibility', 'hidden')
+    NProgress.configure
+      showSpinner: false
+      minimum: 0.1
+      speed: 250
+    NProgress.start()
+    NProgress.set(0.3)
+
     # create an element to attach event listeners to.  only needs to stay in
     # memory, so not attaching it to the DOM
     #
@@ -48,6 +58,8 @@ class Reader
 
     @navElem  = document.getElementById('reader-nav')
     @mainElem = document.getElementById('reader-frame')
+
+    # $(@mainElem).css(opacity:0)
 
 
   getNavDocument: (that)->
@@ -103,6 +115,9 @@ class Reader
     proxy = undefined
 
   initialize: =>
+
+    NProgress.set(0.5)
+
     token = if @options.toc then 'nav' else 'ncx'
     attr = if @options.toc then 'properties' else 'id'
     @nav.regexp = new RegExp("^#{token}$", 'i')
@@ -126,10 +141,16 @@ class Reader
     # Public event listeners
     #
     @on 'pagesloaded', =>
+
+      NProgress.set(0.7)
+
       console.log 'Reader pagesloaded'
       window.scopedPolyFill(document)
 
     @on 'layoutcomplete', =>
+
+      NProgress.set(0.9)
+
       console.log 'Reader layoutcomplete'
       @events.initialize()
       setTimeout (() => @trigger('ready', {}) ), 0
@@ -139,8 +160,13 @@ class Reader
     @on 'prevPage', => @events.prevPage()
 
     @on 'ready', =>
+
+      NProgress.done()
+
       console.log 'Reader ready'
+      $('.wrapper').css('visibility', 'visible')
       $(@mainElem).addClass('ready')
+      # $(@mainElem).css(opacity:1)
 
       # init wheel event handling
       #

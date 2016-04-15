@@ -26,7 +26,7 @@ class Reader::Wheel
         Reader::trigger('nextPage', {})
       else if e.deltaX <= -1
         Reader::trigger('prevPage', {})
-    , 50, true
+    , 40, true
 
     _doScroll = (e)=>
       e.preventDefault()
