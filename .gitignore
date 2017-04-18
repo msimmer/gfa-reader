@@ -6,3 +6,5 @@ node_modules/
 bower_components/
 dist/
 src/img/
+src/js
+src/css
